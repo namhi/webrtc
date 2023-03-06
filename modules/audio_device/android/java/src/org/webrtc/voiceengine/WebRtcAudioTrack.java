@@ -45,7 +45,7 @@ public class WebRtcAudioTrack {
 
   // By default, WebRTC creates audio tracks with a usage attribute
   // corresponding to voice communications, such as telephony or VoIP.
-  private static final int DEFAULT_USAGE = AudioAttributes.USAGE_VOICE_COMMUNICATION;
+  private static final int DEFAULT_USAGE = getDefaultUsageAttribute();
   private static int usageAttribute = DEFAULT_USAGE;
 
   // This method overrides the default usage attribute and allows the user
@@ -57,6 +57,16 @@ public class WebRtcAudioTrack {
     Logging.w(TAG, "Default usage attribute is changed from: "
         + DEFAULT_USAGE + " to " + usage);
     usageAttribute = usage;
+  }
+
+
+  private static int getDefaultUsageAttribute() {
+    if (Build.VERSION.SDK_INT >= 21) {
+      return AudioAttributes.USAGE_MEDIA;
+    } else {
+      // Not used on SDKs lower than 21.
+      return 0;
+    }
   }
 
   private final long nativeAudioTrack;
@@ -320,7 +330,7 @@ public class WebRtcAudioTrack {
     threadChecker.checkIsOnValidThread();
     Logging.d(TAG, "getStreamMaxVolume");
     assertTrue(audioManager != null);
-    return audioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL);
+    return audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
   }
 
   // Set current volume level for a phone call audio stream.
@@ -332,7 +342,7 @@ public class WebRtcAudioTrack {
       Logging.e(TAG, "The device implements a fixed volume policy.");
       return false;
     }
-    audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, volume, 0);
+    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
     return true;
   }
 
@@ -341,7 +351,7 @@ public class WebRtcAudioTrack {
     threadChecker.checkIsOnValidThread();
     Logging.d(TAG, "getStreamVolume");
     assertTrue(audioManager != null);
-    return audioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
+    return audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
   }
 
   private void logMainParameters() {
@@ -362,7 +372,7 @@ public class WebRtcAudioTrack {
     // TODO(henrika): use setPerformanceMode(int) with PERFORMANCE_MODE_LOW_LATENCY to control
     // performance when Android O is supported. Add some logging in the mean time.
     final int nativeOutputSampleRate =
-        AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_VOICE_CALL);
+        AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC);
     Logging.d(TAG, "nativeOutputSampleRate: " + nativeOutputSampleRate);
     if (sampleRateInHz != nativeOutputSampleRate) {
       Logging.w(TAG, "Unable to use fast mode since requested sample rate is not native");
@@ -374,7 +384,7 @@ public class WebRtcAudioTrack {
     return new AudioTrack(
         new AudioAttributes.Builder()
             .setUsage(usageAttribute)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
         .build(),
         new AudioFormat.Builder()
           .setEncoding(AudioFormat.ENCODING_PCM_16BIT)

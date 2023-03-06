@@ -111,7 +111,7 @@ public class WebRtcAudioManager {
     public void start() {
       timer = new Timer(THREAD_NAME);
       timer.schedule(new LogVolumeTask(audioManager.getStreamMaxVolume(AudioManager.STREAM_RING),
-                         audioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL)),
+                         audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)),
           0, TIMER_PERIOD_IN_SECONDS * 1000);
     }
 
@@ -133,7 +133,7 @@ public class WebRtcAudioManager {
                   + maxRingVolume + ")");
         } else if (mode == AudioManager.MODE_IN_COMMUNICATION) {
           Logging.d(TAG, "VOICE_CALL stream volume: "
-                  + audioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL) + " (max="
+                  + audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) + " (max="
                   + maxVoiceCallVolume + ")");
         }
       }
@@ -258,7 +258,7 @@ public class WebRtcAudioManager {
     // as well. The NDK doc states that: "As of API level 21, lower latency
     // audio input is supported on select devices. To take advantage of this
     // feature, first confirm that lower latency output is available".
-    return isLowLatencyOutputSupported();
+    return Build.VERSION.SDK_INT >= 21 && isLowLatencyOutputSupported();
   }
 
   // Returns true if the device has professional audio level of functionality

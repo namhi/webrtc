@@ -47,8 +47,15 @@ class WebRtcAudioTrack {
 
   // By default, WebRTC creates audio tracks with a usage attribute
   // corresponding to voice communications, such as telephony or VoIP.
-  private static final int DEFAULT_USAGE = AudioAttributes.USAGE_VOICE_COMMUNICATION;
-
+  private static final int DEFAULT_USAGE = getDefaultUsageAttribute();
+  private static int getDefaultUsageAttribute() {
+    if (Build.VERSION.SDK_INT >= 21) {
+      return AudioAttributes.USAGE_MEDIA;
+    } else {
+      // Not used on SDKs lower than L.
+      return 0;
+    }
+  }
   // Indicates the AudioTrack has started playing audio.
   private static final int AUDIO_TRACK_START = 0;
 
@@ -331,7 +338,7 @@ class WebRtcAudioTrack {
   private int getStreamMaxVolume() {
     threadChecker.checkIsOnValidThread();
     Logging.d(TAG, "getStreamMaxVolume");
-    return audioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL);
+    return audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
   }
 
   // Set current volume level for a phone call audio stream.
@@ -343,7 +350,7 @@ class WebRtcAudioTrack {
       Logging.e(TAG, "The device implements a fixed volume policy.");
       return false;
     }
-    audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, volume, 0);
+    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
     return true;
   }
 
@@ -352,7 +359,7 @@ class WebRtcAudioTrack {
   private int getStreamVolume() {
     threadChecker.checkIsOnValidThread();
     Logging.d(TAG, "getStreamVolume");
-    return audioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
+    return audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
   }
 
   @CalledByNative
@@ -381,7 +388,7 @@ class WebRtcAudioTrack {
 
   private static void logNativeOutputSampleRate(int requestedSampleRateInHz) {
     final int nativeOutputSampleRate =
-        AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_VOICE_CALL);
+        AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC);
     Logging.d(TAG, "nativeOutputSampleRate: " + nativeOutputSampleRate);
     if (requestedSampleRateInHz != nativeOutputSampleRate) {
       Logging.w(TAG, "Unable to use fast mode since requested sample rate is not native");
@@ -392,10 +399,10 @@ class WebRtcAudioTrack {
     AudioAttributes.Builder attributesBuilder =
         new AudioAttributes.Builder()
             .setUsage(DEFAULT_USAGE)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH);
+            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC);
 
     if (overrideAttributes != null) {
-      if (overrideAttributes.getUsage() != AudioAttributes.USAGE_UNKNOWN) {
+      if (overrideAttributes.getUsage() != AudioAttributes.USAGE_MEDIA) {
         attributesBuilder.setUsage(overrideAttributes.getUsage());
       }
       if (overrideAttributes.getContentType() != AudioAttributes.CONTENT_TYPE_UNKNOWN) {
